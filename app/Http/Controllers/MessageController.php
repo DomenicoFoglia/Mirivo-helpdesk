@@ -24,7 +24,6 @@ class MessageController extends Controller
         $messages = $ticket->messages()->latest()->paginate(15);
 
         return response()->json($messages);
-
     }
 
     /**
