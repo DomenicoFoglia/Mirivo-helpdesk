@@ -65,7 +65,9 @@ class TicketController extends Controller
     {
         $user = Auth::user();
 
-        $ticket = $user->userTickets()->with('messages')->findOrFail($id);
+        // Non inserirsco WITH('MESSAGES') perche' se il ticket ha 500 messaggi questi verrebero
+        // caricati tutti insieme appesantendo la richiesta. Li gestiremo in MessageController
+        $ticket = $user->userTickets()->findOrFail($id);
 
         return response()->json($ticket);
     }
