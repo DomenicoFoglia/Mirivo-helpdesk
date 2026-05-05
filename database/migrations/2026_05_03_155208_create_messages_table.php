@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->text('text');
+            $table->text('body');
             $table->enum('type', ['public', 'private'])->default('public');
             $table->timestamps();
         });

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['ticket_id', 'user_id', 'text', 'type'])]
+#[Fillable(['ticket_id', 'user_id', 'body', 'type'])]
 
 class Message extends Model
 {
