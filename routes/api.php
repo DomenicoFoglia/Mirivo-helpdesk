@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\MessageController;
@@ -18,7 +19,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('is.agent')->group(function () {
-        // rotte agenti L1 e L2
+        Route::get('/agent/tickets', [AgentTicketController::class, 'index']);
+        Route::get('/agent/tickets/available', [AgentTicketController::class, 'available']);
+        Route::post('/agent/tickets/{ticket}/assign', [AgentTicketController::class, 'assign']);
+        Route::put('/agent/tickets/{ticket}/close', [AgentTicketController::class, 'close']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
