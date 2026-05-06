@@ -84,9 +84,9 @@ class AgentTicketController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Aggiorna stato del ticket
      */
-    public function working(Ticket $ticket){
+    public function updateStatus(Ticket $ticket, Request $request){
         $user = Auth::user();
 
         if($user->id !== $ticket->assignee_id || $user->company_id !== $ticket->company_id){
@@ -95,7 +95,11 @@ class AgentTicketController extends Controller
             ], 403);
         }
 
-        $ticket->status = 'working';
+        $validated = $request->validate([
+            'status' => 'required|in:open,working'
+        ]);
+
+        $ticket->status = $validated['status'];
         $ticket->save();
 
         return response()->json($ticket, 200);

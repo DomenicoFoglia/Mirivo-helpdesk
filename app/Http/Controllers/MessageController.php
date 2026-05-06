@@ -12,10 +12,13 @@ class MessageController extends Controller
     /**
      * Mostra i ticket aperti all'utente
      */
-    public function indexUser(Ticket $ticket)
+    public function index(Ticket $ticket)
     {
         $user = Auth::user();
-        if($user->id !== $ticket->user_id){
+
+        $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id;
+
+        if(!$hasAccess){
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 403);
@@ -27,35 +30,20 @@ class MessageController extends Controller
     }
 
     /**
-     * Mostra i ticket al tecnico
+     * Salva un nuovo messaggio
      */
-    public function indexAgent(Ticket $ticket)
+    public function store(Request $request, Ticket $ticket)
     {
-        $user = Auth::user();
-        if($user->id !== $ticket->assignee_id){
+        $user  = Auth::user();
+
+        $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id;
+
+        if(!$hasAccess){
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 403);
         }
 
-        $messages = $ticket->messages()->latest()->paginate(15);
-
-        return response()->json($messages);
-    }
-
-    /**
-     * Salva un nuovo messaggio dell'utente
-     */
-    public function storeUser(Request $request, Ticket $ticket)
-    {
-        $user  = Auth::user();
-
-        if($user->id !== $ticket->user_id){
-            return response()->json([
-                'message' => 'Azione non permessa'
-            ], 404);
-        }
-
         $validated = $request->validate([
             'body' => 'required|string'
         ]);
@@ -65,32 +53,6 @@ class MessageController extends Controller
             'user_id' => $user->id,
             'ticket_id' => $ticket->id
         ]), 201);
-        
-    }
-
-    /**
-     * Salva un nuovo messaggio del tecnico
-     */
-    public function storeAgent(Request $request, Ticket $ticket)
-    {
-        $user  = Auth::user();
-
-        if($user->id !== $ticket->assignee_id){
-            return response()->json([
-                'message' => 'Azione non permessa'
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'body' => 'required|string'
-        ]);
-        
-        return response()->json(Message::create([
-            'body' => $validated['body'],
-            'user_id' => $user->id,
-            'ticket_id' => $ticket->id
-        ]), 201);
-        
     }
 
     /**
