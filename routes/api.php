@@ -21,8 +21,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is.agent')->group(function () {
         Route::get('/agent/tickets', [AgentTicketController::class, 'index']);
         Route::get('/agent/tickets/available', [AgentTicketController::class, 'available']);
+        Route::get('/agent/tickets/{ticket}', [AgentTicketController::class, 'show']);
         Route::post('/agent/tickets/{ticket}/assign', [AgentTicketController::class, 'assign']);
         Route::put('/agent/tickets/{ticket}/close', [AgentTicketController::class, 'close']);
+        Route::put('/agent/tickets/{ticket}/working', [AgentTicketController::class, 'working']);
+        Route::post('/agent/ticket/{ticket}/messages', [MessageController::class, 'storeAgent']);
+        Route::get('/agent/ticket/{ticket}/messages', [MessageController::class, 'indexAgent']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
@@ -33,8 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/ticket', [TicketController::class, 'store']);
         Route::get('/tickets', [TicketController::class, 'index']);
         Route::get('/ticket/{id}', [TicketController::class, 'show']);
-        Route::post('/ticket/{ticket}/messages', [MessageController::class, 'store']);
-        Route::get('/ticket/{ticket}/messages', [MessageController::class, 'index']);
+        Route::post('/ticket/{ticket}/messages', [MessageController::class, 'storeUser']);
+        Route::get('/ticket/{ticket}/messages', [MessageController::class, 'indexUser']);
         Route::get('/faqs', [FaqController::class, 'index']);
         Route::get('/faqs/{id}', [FaqController::class, 'show']);
     });

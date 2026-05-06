@@ -86,6 +86,24 @@ class AgentTicketController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    public function working(Ticket $ticket){
+        $user = Auth::user();
+
+        if($user->id !== $ticket->assignee_id || $user->company_id !== $ticket->company_id){
+            return response()->json([
+                'message' => 'Non autorizzato'
+            ], 403);
+        }
+
+        $ticket->status = 'working';
+        $ticket->save();
+
+        return response()->json($ticket, 200);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         //
@@ -96,7 +114,11 @@ class AgentTicketController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = Auth::user();
+
+        $ticket = Ticket::where('company_id', $user->company_id)->findOrFail($id);
+
+        return response()->json($ticket, 200);
     }
 
     /**

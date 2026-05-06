@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Auth;
 class MessageController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Mostra i ticket aperti all'utente
      */
-    public function index(Ticket $ticket)
+    public function indexUser(Ticket $ticket)
     {
         $user = Auth::user();
         if($user->id !== $ticket->user_id){
@@ -27,13 +27,55 @@ class MessageController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Mostra i ticket al tecnico
      */
-    public function store(Request $request, Ticket $ticket)
+    public function indexAgent(Ticket $ticket)
+    {
+        $user = Auth::user();
+        if($user->id !== $ticket->assignee_id){
+            return response()->json([
+                'message' => 'Azione non permessa'
+            ], 403);
+        }
+
+        $messages = $ticket->messages()->latest()->paginate(15);
+
+        return response()->json($messages);
+    }
+
+    /**
+     * Salva un nuovo messaggio dell'utente
+     */
+    public function storeUser(Request $request, Ticket $ticket)
     {
         $user  = Auth::user();
 
         if($user->id !== $ticket->user_id){
+            return response()->json([
+                'message' => 'Azione non permessa'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'body' => 'required|string'
+        ]);
+        
+        return response()->json(Message::create([
+            'body' => $validated['body'],
+            'user_id' => $user->id,
+            'ticket_id' => $ticket->id
+        ]), 201);
+        
+    }
+
+    /**
+     * Salva un nuovo messaggio del tecnico
+     */
+    public function storeAgent(Request $request, Ticket $ticket)
+    {
+        $user  = Auth::user();
+
+        if($user->id !== $ticket->assignee_id){
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 404);
