@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -103,6 +105,42 @@ class AgentTicketController extends Controller
         $ticket->save();
 
         return response()->json($ticket, 200);
+    }
+
+    /**
+     * Scala il ticket ad un Tecnico si secondo livello, JsonResponse e' solo per assicurarci che ritorniamo un json
+     */
+    public function escalate(Request $request, string $id): JsonResponse{
+        $user = Auth::user();
+
+        // Solo L1 puo' scalare
+        if($user->level !== 1){
+            return response()->json([
+                'message' => 'Solo i tecnici L1 possono scalare un ticket!'
+            ]);
+        }
+
+        $ticket = Ticket::where('company_id', $user->company_id)
+                        ->where('assignee_id', $user->id)
+                        ->findOrFail($id);
+
+        $assigneeId = null;
+
+        if( $request->filled('assignee_id')){
+            $l2 = User::where('id', $request->assignee_id)
+                        ->where('company_id', $user->company_id)
+                        ->where('role', 'agent')
+                        ->where('level', 2)
+                        ->firstOrFail();
+            
+            $assigneeId = $l2->id;
+        }
+
+        $ticket->assignee_id = $assigneeId;
+        $ticket->status = 'escalated';
+        $ticket->save();
+
+        return response()->json(['message' => 'Ticket scalato con successo', 'ticket' => $ticket]);
     }
 
     /**

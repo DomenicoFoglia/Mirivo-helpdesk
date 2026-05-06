@@ -22,7 +22,7 @@ return new class extends Migration
             // in un'altra categoria. Usiamo quindi restrictOnDelete()
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->string('title');
-            $table->enum('status', ['open', 'working', 'closed'])->default('open');
+            $table->enum('status', ['open', 'working', 'escalated', 'closed'])->default('open');
             //La priorita' e' gestita dai tecnici quindi inizialmente sara' NULL
             $table->enum('priority', ['low', 'medium', 'high'])->nullable();
             $table->timestamps();

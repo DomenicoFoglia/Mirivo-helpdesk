@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/agent/tickets/{ticket}/updateStatus', [AgentTicketController::class, 'updateStatus']);
         Route::post('/agent/ticket/{ticket}/messages', [MessageController::class, 'store']);
         Route::get('/agent/ticket/{ticket}/messages', [MessageController::class, 'index']);
+        Route::put('/agent/tickets/{ticket}/escalate', [AgentTicketController::class, 'escalate']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
