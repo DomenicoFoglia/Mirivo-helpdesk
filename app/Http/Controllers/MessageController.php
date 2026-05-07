@@ -15,43 +15,60 @@ class MessageController extends Controller
     public function index(Ticket $ticket)
     {
         $user = Auth::user();
-
-        $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id;
-
-        if(!$hasAccess){
+        if($user->company_id !== $ticket->company_id){
             return response()->json([
-                'message' => 'Azione non permessa'
+                'message' => 'Non autorizzato'
             ], 403);
         }
+        
+        $query= $ticket->messages()->latest();
 
-        $messages = $ticket->messages()->latest()->paginate(15);
+        if($user->role === 'user'){
+            if($user->id !== $ticket->user_id){
+                return response()->json([
+                    'message' => 'Non autorizzato'
+                ], 403);
+            }else{
+                $query = $query->where('type', 'public');
+            } 
+        }
+
+        $messages = $query->paginate(15);
 
         return response()->json($messages);
     }
 
     /**
-     * Salva un nuovo messaggio
+      * Salva un nuovo messaggio
      */
     public function store(Request $request, Ticket $ticket)
     {
         $user  = Auth::user();
 
-        $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id;
+        $validated = $request->validate([
+            'body' => 'required|string',
+            'type' => 'nullable|in:public,private'
+        ]);
 
-        if(!$hasAccess){
+        $type = $validated['type'] ?? 'public';
+
+        if($type === 'public'){
+            $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id || $user->role === 'admin';
+        }else{
+            $hasAccess = $ticket->assignee_id === $user->id || $user->role === 'admin';
+        }
+
+        if(!$hasAccess || $user->company_id !== $ticket->company_id){
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 403);
         }
-
-        $validated = $request->validate([
-            'body' => 'required|string'
-        ]);
         
         return response()->json(Message::create([
             'body' => $validated['body'],
             'user_id' => $user->id,
-            'ticket_id' => $ticket->id
+            'ticket_id' => $ticket->id,
+            'type' => $type
         ]), 201);
     }
 
