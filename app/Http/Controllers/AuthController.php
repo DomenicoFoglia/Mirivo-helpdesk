@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -101,6 +102,49 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Logout effettuato'
         ], 200);
+    }
+
+
+    public function registerByInvite(Request $request, string $authToken){
+        // Cerco l'invito nel DB e faccio 3 controlli:
+        // 1. Che il token passato sia effetivamente prensete nell'invito
+        // 2. Che la data di scadenza dell'invito non sia stata gia superata
+        // 3. Che accepted_at sia null, cioe' che l'invito non sia stato ancora accettato.
+        $invitation = Invitation::where('token', $authToken)
+                                ->where('expires_at', '>', now())
+                                ->whereNull('accepted_at')
+                                ->firstOrFail();
+
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'password' => [
+                                'required',
+                                'confirmed',
+                                Password::min(12)->mixedCase()->numbers()->symbols()
+                                ], 
+        ]);
+
+        $user = User::create([
+            'company_id' => $invitation->company_id,
+            'email' => $invitation->email,
+            'name' => $validated['name'],
+            'surname' => $validated['surname'],
+            'password' => $validated['password'],
+            'role' => $invitation->role,
+        ]);
+
+        $invitation->accepted_at = now();
+        $invitation->save();
+        $accessToken = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Registrazione avvenuta con successo',
+            'user' => $user,
+            'token' => $accessToken
+        ], 201);
+        
     }
 
 }
