@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class FaqController extends Controller
 {
@@ -35,7 +36,7 @@ class FaqController extends Controller
         $validated = $request->validate([
             'question' => 'required|string|max:255',
             'answer' => 'required|string|max:3000',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => ['required', Rule::exists('categories', 'id')->where('company_id', $user->company_id)],
         ]);
 
         $faq = Faq::create([
@@ -46,7 +47,6 @@ class FaqController extends Controller
             ]);
 
         return response()->json($faq, 201);
-
     }
 
     /**
@@ -66,7 +66,19 @@ class FaqController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $user = Auth::user();
+
+        $faq = Faq::where('company_id', $user->company_id)->findOrFail($id);
+
+        $validated = $request->validate([
+            'question' => 'sometimes|string|max:255',
+            'answer' => 'sometimes|string|max:3000',
+            'category_id' => ['sometimes', Rule::exists('categories', 'id')->where('company_id', $user->company_id)],
+        ]);
+
+        $faq->update($validated);
+
+        return response()->json($faq);
     }
 
     /**
@@ -74,6 +86,14 @@ class FaqController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $user = Auth::user();
+
+        $faq = Faq::where('company_id', $user->company_id)->findOrFail($id);
+
+        $faq->delete();
+
+        return response()->json([
+            'message' => 'Faq eliminata con successo'
+        ], 204);
     }
 }

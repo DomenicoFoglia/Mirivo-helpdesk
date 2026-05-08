@@ -24,6 +24,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/ticket/{ticket}/messages', [MessageController::class, 'index']);
         Route::post('/admin/ticket/{ticket}/messages', [MessageController::class, 'store']);
         Route::apiResource('admin/categories', CategoryController::class);
+        Route::post('/admin/faqs', [FaqController::class, 'store']);
+        Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
+        Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
     });
 
     Route::middleware('is.agent')->group(function () {
