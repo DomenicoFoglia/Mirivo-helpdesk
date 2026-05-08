@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -16,6 +17,8 @@ Route::post('/auth/invite/{token}', [AuthController::class, 'registerByInvite'])
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/faqs', [FaqController::class, 'index']);
+    Route::get('/faqs/{id}', [FaqController::class, 'show']);
 
     Route::middleware('is.admin')->group(function () {
         Route::get('/admin/invitations', [InvitationController::class, 'index']);
@@ -27,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/faqs', [FaqController::class, 'store']);
         Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
         Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
+        Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
+        Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
     });
 
     Route::middleware('is.agent')->group(function () {
@@ -51,8 +56,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/ticket/{id}', [TicketController::class, 'show']);
         Route::post('/ticket/{ticket}/messages', [MessageController::class, 'store']);
         Route::get('/ticket/{ticket}/messages', [MessageController::class, 'index']);
-        Route::get('/faqs', [FaqController::class, 'index']);
-        Route::get('/faqs/{id}', [FaqController::class, 'show']);
     });
 
 });
