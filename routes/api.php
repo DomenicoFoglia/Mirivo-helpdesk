@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MessageController;
@@ -22,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/invitations/{invitation}', [InvitationController::class, 'destroy']);
         Route::get('/admin/ticket/{ticket}/messages', [MessageController::class, 'index']);
         Route::post('/admin/ticket/{ticket}/messages', [MessageController::class, 'store']);
+        Route::apiResource('admin/categories', CategoryController::class);
     });
 
     Route::middleware('is.agent')->group(function () {

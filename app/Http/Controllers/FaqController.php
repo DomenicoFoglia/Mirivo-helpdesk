@@ -30,7 +30,23 @@ class FaqController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'question' => 'required|string|max:255',
+            'answer' => 'required|string|max:3000',
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $faq = Faq::create([
+                'company_id' => $user->company_id,
+                'category_id' => $validated['category_id'],
+                'question' => $validated['question'],
+                'answer' => $validated['answer']
+            ]);
+
+        return response()->json($faq, 201);
+
     }
 
     /**
