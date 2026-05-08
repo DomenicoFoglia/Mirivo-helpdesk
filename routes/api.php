@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/admin/faqs', [FaqController::class, 'store']);
         Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
         Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
+        Route::get('/admin/users', [AdminUserController::class, 'index']);
         Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
     });

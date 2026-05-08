@@ -13,7 +13,11 @@ class AdminUserController extends Controller
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+
+        $users = User::where('company_id', $user->company_id)->paginate(15);
+
+        return response()->json($users);
     }
 
     /**
