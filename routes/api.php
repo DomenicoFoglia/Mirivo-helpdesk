@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/faqs', [FaqController::class, 'index']);
     Route::get('/faqs/{id}', [FaqController::class, 'show']);
+    Route::put('/user/theme', [ProfileController::class, 'updateTheme']);
 
     Route::middleware('is.admin')->group(function () {
         Route::get('/admin/invitations', [InvitationController::class, 'index']);
