@@ -86,7 +86,8 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::find(Auth::id());
+        //Ho aggiunto with('company') perche' poi nel frontend ho bisogno delle info dell'azienda
+        $user = User::with('company')->find(Auth::id());
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
