@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AuthController;
@@ -35,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/users', [AdminUserController::class, 'index']);
         Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
+        Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'stats']);
     });
 
     Route::middleware('is.agent')->group(function () {
