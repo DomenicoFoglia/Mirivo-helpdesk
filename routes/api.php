@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
@@ -56,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/agent/ticket/{ticket}/messages', [MessageController::class, 'store']);
         Route::get('/agent/ticket/{ticket}/messages', [MessageController::class, 'index']);
         Route::put('/agent/tickets/{ticket}/escalate', [AgentTicketController::class, 'escalate']);
+        Route::get('/agent/dashboard/stats', [AgentDashboardController::class, 'stats']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
