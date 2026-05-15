@@ -39,7 +39,7 @@ class AgentTicketController extends Controller
         $tickets = Ticket:: where('company_id', $user->company_id)
                             ->where('status', 'open')
                             ->whereNull('assignee_id')
-                            ->paginate(15);
+                            ->get();
 
         return response()->json([
             'tickets' => $tickets
