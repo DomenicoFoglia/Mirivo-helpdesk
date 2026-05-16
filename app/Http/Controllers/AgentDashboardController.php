@@ -45,4 +45,5 @@ class AgentDashboardController extends Controller
         ]);
 
     }
+
 }
