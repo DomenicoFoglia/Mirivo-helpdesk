@@ -45,23 +45,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
         Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'stats']);
+        Route::get('/admin/dashboard/details', [AdminDashboardController::class, 'details']);
     });
 
     Route::middleware('is.agent')->group(function () {
         Route::get('/agent/tickets', [AgentTicketController::class, 'index']);
         Route::get('/agent/tickets/available', [AgentTicketController::class, 'available']);
-        Route::get('/agent/tickets/{ticket}', [AgentTicketController::class, 'show']);
-        Route::post('/agent/tickets/{ticket}/assign', [AgentTicketController::class, 'assign']);
-        Route::put('/agent/tickets/{ticket}/close', [AgentTicketController::class, 'close']);
-        Route::put('/agent/tickets/{ticket}/updateStatus', [AgentTicketController::class, 'updateStatus']);
+        Route::get('/agent/tickets/{id}', [AgentTicketController::class, 'show']);
+        Route::post('/agent/tickets/{id}/assign', [AgentTicketController::class, 'assign']);
+        Route::put('/agent/tickets/{id}/close', [AgentTicketController::class, 'close']);
+        Route::put('/agent/tickets/{id}/updateStatus', [AgentTicketController::class, 'updateStatus']);
         Route::post('/agent/ticket/{ticket}/messages', [MessageController::class, 'store']);
         Route::get('/agent/ticket/{ticket}/messages', [MessageController::class, 'index']);
-        Route::put('/agent/tickets/{ticket}/escalate', [AgentTicketController::class, 'escalate']);
+        Route::put('/agent/tickets/{id}/escalate', [AgentTicketController::class, 'escalate']);
         Route::get('/agent/dashboard/stats', [AgentDashboardController::class, 'stats']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
         // rotte solo agenti L2
+        Route::get('/agent/tickets/escalated/available', [AgentTicketController::class, 'escalatedAvailable']);
     });
 
     Route::middleware('is.user')->group(function () {

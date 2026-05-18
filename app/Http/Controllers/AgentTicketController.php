@@ -26,7 +26,7 @@ class AgentTicketController extends Controller
 
         $tickets = $user->assigneeTickets()->paginate(15);
 
-        return response()->json($tickets);
+        return $tickets;
     }
 
     /**
@@ -36,66 +36,80 @@ class AgentTicketController extends Controller
 
         $user = Auth::user();
 
-        $tickets = Ticket:: where('company_id', $user->company_id)
-                            ->where('status', 'open')
-                            ->whereNull('assignee_id')
-                            ->get();
+        $tickets = Ticket::where('company_id', $user->company_id)
+            ->where('status', 'open')
+            ->whereNull('assignee_id')
+            ->paginate(15);
 
-        return response()->json([
-            'tickets' => $tickets
-        ], 200);
+        return $tickets;
+    }
+
+    /**
+     * Restituisce i ticket 'scalati' non ancora assegnati
+     */
+    public function escalatedAvailable(){
+        $user = Auth::user();
+
+        $tickets= Ticket::where('company_id', $user->company_id)
+            ->where('status', 'escalated')
+            ->whereNull('assignee_id')
+            ->paginate(15);
+
+        return $tickets;
     }
 
 
     /**
      * permeette a un tecnico di assegnarsi un ticket
      */
-    public function assign(Ticket $ticket){
+    public function assign(string $id){
         $user = Auth::user();
 
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->where('status', 'open')
+            ->findOrFail($id);
+
+        // Avreei potuto aggiungere ->whereNull('assignee_id') direttamente nella query precedente ma
+        // nell'eventualita' di 2 tecnici che cercano di prendere lo stesso ticket quasi contemporanemante
+        // almeno avremo un messaggio chiaro nel frontend di quello che stga succedendo.
+        // Esiste anche un metodo che blocca la riga nel DB durante la transazione ma a noi non serve
         if($ticket->assignee_id !== null){
-            return response()->json([
-                'message' => 'Ticket gia preso in consegna'
-            ], 403);
+            return response()->json(['message' => 'Ticket gia preso in consegna'], 409);
         }
 
         $ticket->assignee_id = $user->id;
 
         $ticket->save();
 
-        return response()->json($ticket, 200);
+        return $ticket;
     }
 
     /**
      * Chiude un ticket
      */
-    public function close(Ticket $ticket){
+    public function close(string $id){
         $user = Auth::user();
 
-        if($user->id !== $ticket->assignee_id || $user->company_id !== $ticket->company_id){
-            return response()->json([
-                'message' => 'Non autorizzato'
-            ], 403);
-        }
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->where('assignee_id', $user->id)
+            ->findOrFail($id);
 
         $ticket->status = 'closed';
         $ticket->closed_at = now();
         $ticket->save();
 
-        return response()->json($ticket, 200);
+        return $ticket;
     }
 
     /**
      * Aggiorna stato del ticket
      */
-    public function updateStatus(Ticket $ticket, Request $request){
+    public function updateStatus(Request $request, string $id){
         $user = Auth::user();
 
-        if($user->id !== $ticket->assignee_id || $user->company_id !== $ticket->company_id){
-            return response()->json([
-                'message' => 'Non autorizzato'
-            ], 403);
-        }
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->where('assignee_id', $user->id)
+            ->findOrFail($id);
 
         $validated = $request->validate([
             'status' => 'required|in:open,working'
@@ -104,7 +118,7 @@ class AgentTicketController extends Controller
         $ticket->status = $validated['status'];
         $ticket->save();
 
-        return response()->json($ticket, 200);
+        return $ticket;
     }
 
     /**
@@ -117,7 +131,7 @@ class AgentTicketController extends Controller
         if($user->level !== 1){
             return response()->json([
                 'message' => 'Solo i tecnici L1 possono scalare un ticket!'
-            ]);
+            ], 403);
         }
 
         $ticket = Ticket::where('company_id', $user->company_id)
@@ -160,7 +174,7 @@ class AgentTicketController extends Controller
 
         $ticket = Ticket::where('company_id', $user->company_id)->findOrFail($id);
 
-        return response()->json($ticket, 200);
+        return $ticket;
     }
 
     /**
