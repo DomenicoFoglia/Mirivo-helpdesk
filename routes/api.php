@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is.agent.l2')->group(function () {
         // rotte solo agenti L2
         Route::get('/agent/tickets/escalated/available', [AgentTicketController::class, 'escalatedAvailable']);
+        Route::post('/agent/tickets/{id}/assignEscalated', [AgentTicketController::class, 'assignEscalated']);
     });
 
     Route::middleware('is.user')->group(function () {

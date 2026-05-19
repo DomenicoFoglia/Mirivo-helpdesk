@@ -60,7 +60,7 @@ class AgentTicketController extends Controller
 
 
     /**
-     * permeette a un tecnico di assegnarsi un ticket
+     * Permeette a un tecnico di assegnarsi un ticket
      */
     public function assign(string $id){
         $user = Auth::user();
@@ -78,6 +78,29 @@ class AgentTicketController extends Controller
         }
 
         $ticket->assignee_id = $user->id;
+        $ticket->status = 'working';
+
+        $ticket->save();
+
+        return $ticket;
+    }
+
+    /**
+     * Chiude un ticket
+     */
+    public function assignEscalated(string $id){
+        $user = Auth::user();
+
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->where('status', 'escalated')
+            ->findOrFail($id);
+
+        if($ticket->assignee_id !== null){
+            return response()->json(['message' => 'Ticket gia preso in consegna'], 409);
+        }
+
+        $ticket->assignee_id = $user->id;
+        $ticket->status = 'working';
 
         $ticket->save();
 
