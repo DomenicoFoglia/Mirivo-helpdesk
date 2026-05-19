@@ -34,9 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('is.admin')->group(function () {
         Route::get('/admin/invitations', [InvitationController::class, 'index']);
         Route::post('/admin/invitations', [InvitationController::class, 'store']);
-        Route::delete('/admin/invitations/{invitation}', [InvitationController::class, 'destroy']);
-        Route::get('/admin/ticket/{ticket}/messages', [MessageController::class, 'index']);
-        Route::post('/admin/ticket/{ticket}/messages', [MessageController::class, 'store']);
+        Route::delete('/admin/invitations/{id}', [InvitationController::class, 'destroy']);
+        Route::get('/admin/ticket/{id}/messages', [MessageController::class, 'index']);
+        Route::post('/admin/ticket/{id}/messages', [MessageController::class, 'store']);
         Route::apiResource('admin/categories', CategoryController::class);
         Route::post('/admin/faqs', [FaqController::class, 'store']);
         Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
@@ -55,8 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/agent/tickets/{id}/assign', [AgentTicketController::class, 'assign']);
         Route::put('/agent/tickets/{id}/close', [AgentTicketController::class, 'close']);
         Route::put('/agent/tickets/{id}/updateStatus', [AgentTicketController::class, 'updateStatus']);
-        Route::post('/agent/ticket/{ticket}/messages', [MessageController::class, 'store']);
-        Route::get('/agent/ticket/{ticket}/messages', [MessageController::class, 'index']);
+        Route::post('/agent/ticket/{id}/messages', [MessageController::class, 'store']);
+        Route::get('/agent/ticket/{id}/messages', [MessageController::class, 'index']);
         Route::put('/agent/tickets/{id}/escalate', [AgentTicketController::class, 'escalate']);
         Route::get('/agent/dashboard/stats', [AgentDashboardController::class, 'stats']);
     });
@@ -70,8 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/ticket', [TicketController::class, 'store']);
         Route::get('/tickets', [TicketController::class, 'index']);
         Route::get('/ticket/{id}', [TicketController::class, 'show']);
-        Route::post('/ticket/{ticket}/messages', [MessageController::class, 'store']);
-        Route::get('/ticket/{ticket}/messages', [MessageController::class, 'index']);
+        Route::post('/ticket/{id}/messages', [MessageController::class, 'store']);
+        Route::get('/ticket/{id}/messages', [MessageController::class, 'index']);
     });
 
 });

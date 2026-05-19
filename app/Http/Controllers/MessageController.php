@@ -12,38 +12,36 @@ class MessageController extends Controller
     /**
      * Mostra i ticket aperti all'utente
      */
-    public function index(Ticket $ticket)
+    public function index(string $id)
     {
         $user = Auth::user();
-        if($user->company_id !== $ticket->company_id){
-            return response()->json([
-                'message' => 'Non autorizzato'
-            ], 403);
-        }
         
-        $query= $ticket->messages()->latest();
+        $query = Ticket::where('company_id', $user->company_id);
 
         if($user->role === 'user'){
-            if($user->id !== $ticket->user_id){
-                return response()->json([
-                    'message' => 'Non autorizzato'
-                ], 403);
-            }else{
-                $query = $query->where('type', 'public');
-            } 
+            $query->where('user_id', $user->id);
         }
 
-        $messages = $query->paginate(15);
+        $ticket = $query->findOrFail($id);
 
-        return response()->json($messages);
+        $messagesQuery = $ticket->messages()->latest();
+
+        if($user->role === 'user'){
+            $messagesQuery->where('type', 'public');
+        }
+
+        return $messagesQuery->paginate(15);
     }
 
     /**
       * Salva un nuovo messaggio
      */
-    public function store(Request $request, Ticket $ticket)
+    public function store(Request $request, string $id)
     {
         $user  = Auth::user();
+
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->findOrFail($id);
 
         $validated = $request->validate([
             'body' => 'required|string',
@@ -58,7 +56,7 @@ class MessageController extends Controller
             $hasAccess = $ticket->assignee_id === $user->id || $user->role === 'admin';
         }
 
-        if(!$hasAccess || $user->company_id !== $ticket->company_id){
+        if(!$hasAccess){
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 403);

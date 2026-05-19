@@ -17,7 +17,7 @@ class AdminUserController extends Controller
 
         $users = User::where('company_id', $user->company_id)->paginate(15);
 
-        return response()->json($users);
+        return $users;
     }
 
     /**
@@ -66,7 +66,7 @@ class AdminUserController extends Controller
 
         $updatedUser->update($validated);
 
-        return response()->json($updatedUser);
+        return $updatedUser;
     }
 
     /**
@@ -85,8 +85,6 @@ class AdminUserController extends Controller
 
         $userToDelete->delete();
 
-        return response()->json([
-            'message' => 'Utente eliminato con successo'
-        ], 204);
+        return response()->noContent();
     }
 }

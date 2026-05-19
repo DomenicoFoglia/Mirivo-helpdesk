@@ -19,7 +19,7 @@ class TicketController extends Controller
 
         $tickets = $user->userTickets()->latest()->paginate(15);
 
-        return response()->json($tickets);
+        return $tickets;
     }
 
     /**
@@ -40,7 +40,7 @@ class TicketController extends Controller
                 'title' => $validated['title'],
                 'category_id' => $validated['category_id'],
                 'user_id' => $user->id,
-                'company_id' => $user->company->id
+                'company_id' => $user->company_id
             ]);
 
             Message::create([
@@ -69,7 +69,10 @@ class TicketController extends Controller
         // caricati tutti insieme appesantendo la richiesta. Li gestiremo in MessageController
         $ticket = $user->userTickets()->findOrFail($id);
 
-        return response()->json($ticket);
+        // Avremmo potuto fare anche cosi:
+        // $ticket = Ticket::where('company_id', $user->company_id)->where('user_id', $user->id)->findOrfail($id);
+        
+        return $ticket;
     }
 
     /**

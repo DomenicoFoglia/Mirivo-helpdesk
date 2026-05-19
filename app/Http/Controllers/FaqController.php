@@ -21,9 +21,7 @@ class FaqController extends Controller
         // Garantisce l'isolamento multi-tenant: ogni utente vede solo le FAQ della propria azienda.
         $faqs = Faq::where('company_id', $user->company_id)->paginate(15);
         
-        return response()->json([
-            'faqs' => $faqs
-        ]);
+        return $faqs;
     }
 
     /**
@@ -58,7 +56,7 @@ class FaqController extends Controller
 
         $faq = Faq::where('company_id', $user->company_id)->findOrFail($id);
 
-        return response()->json($faq);
+        return $faq;
     }
 
     /**
@@ -78,7 +76,7 @@ class FaqController extends Controller
 
         $faq->update($validated);
 
-        return response()->json($faq);
+        return $faq;
     }
 
     /**
@@ -92,8 +90,6 @@ class FaqController extends Controller
 
         $faq->delete();
 
-        return response()->json([
-            'message' => 'Faq eliminata con successo'
-        ], 204);
+        return response()->noContent();
     }
 }

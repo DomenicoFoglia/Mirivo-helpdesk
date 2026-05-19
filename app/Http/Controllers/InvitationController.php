@@ -19,7 +19,7 @@ class InvitationController extends Controller
 
         $invitations = Invitation::where('company_id', $user->company_id)->paginate(15);
 
-        return response()->json($invitations);
+        return $invitations;
     }
 
     /**
@@ -77,8 +77,6 @@ class InvitationController extends Controller
 
         $invitation->delete();
 
-        return response()->json([
-            'message' => 'Invito eliminato con successo'
-        ], 204);
+        return response()->noContent();
     }
 }

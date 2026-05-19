@@ -17,7 +17,7 @@ class CategoryController extends Controller
 
         $categories = Category::where('company_id', $user->company_id)->paginate(15);
 
-        return response()->json($categories);
+        return $categories;
     }
 
     /**
@@ -48,7 +48,7 @@ class CategoryController extends Controller
 
         $category = Category::where('company_id', $user->company_id)->findOrFail($id);
 
-        return response()->json($category);
+        return $category;
     }
 
     /**
@@ -66,7 +66,7 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return response()->json($category);
+        return $category;
     }
 
     /**
@@ -80,8 +80,6 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return response()->json([
-            'message' => 'Categoria eliminata con successo'
-        ], 204);
+        return response()->noContent();
     }
 }
