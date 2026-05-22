@@ -67,7 +67,7 @@ class TicketController extends Controller
 
         // Non inserirsco WITH('MESSAGES') perche' se il ticket ha 500 messaggi questi verrebero
         // caricati tutti insieme appesantendo la richiesta. Li gestiremo in MessageController
-        $ticket = $user->userTickets()->findOrFail($id);
+        $ticket = $user->userTickets()->with(['assignee', 'category'])->findOrFail($id);
 
         // Avremmo potuto fare anche cosi:
         // $ticket = Ticket::where('company_id', $user->company_id)->where('user_id', $user->id)->findOrfail($id);

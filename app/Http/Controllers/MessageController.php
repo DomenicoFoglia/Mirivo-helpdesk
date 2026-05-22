@@ -24,7 +24,7 @@ class MessageController extends Controller
 
         $ticket = $query->findOrFail($id);
 
-        $messagesQuery = $ticket->messages()->latest();
+        $messagesQuery = $ticket->messages();
 
         if($user->role === 'user'){
             $messagesQuery->where('type', 'public');
@@ -53,7 +53,7 @@ class MessageController extends Controller
         if($type === 'public'){
             $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id || $user->role === 'admin';
         }else{
-            $hasAccess = $ticket->assignee_id === $user->id || $user->role === 'admin';
+            $hasAccess = $user->role === 'agent' || $user->role === 'admin';
         }
 
         if(!$hasAccess){

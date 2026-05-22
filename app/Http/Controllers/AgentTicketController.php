@@ -86,7 +86,7 @@ class AgentTicketController extends Controller
     }
 
     /**
-     * Chiude un ticket
+     * Dato un ticket scalato, lo assegna ad un tecnico L2
      */
     public function assignEscalated(string $id){
         $user = Auth::user();
@@ -143,6 +143,27 @@ class AgentTicketController extends Controller
 
         return $ticket;
     }
+
+    /**
+     * Aggiorna priorita' del  ticket
+     */
+    public function updatePriority(Request $request, string $id){
+        $user = Auth::user();
+
+        $ticket= Ticket::where('company_id', $user->company_id)
+            ->where('assignee_id', $user->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'priority' => 'nullable|in:low,medium,high'
+        ]);
+
+        $ticket->priority = $validated['priority'];
+        $ticket->save();
+
+        return $ticket;
+    }
+
 
     /**
      * Scala il ticket ad un Tecnico si secondo livello, JsonResponse e' solo per assicurarci che ritorniamo un json

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\AgentTicketController;
@@ -35,8 +36,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/invitations', [InvitationController::class, 'index']);
         Route::post('/admin/invitations', [InvitationController::class, 'store']);
         Route::delete('/admin/invitations/{id}', [InvitationController::class, 'destroy']);
-        Route::get('/admin/ticket/{id}/messages', [MessageController::class, 'index']);
-        Route::post('/admin/ticket/{id}/messages', [MessageController::class, 'store']);
+        Route::get('/admin/tickets/{id}', [AdminTicketController::class, 'show']);
+        Route::get('/admin/tickets/{id}/messages', [MessageController::class, 'index']);
+        Route::post('/admin/tickets/{id}/messages', [MessageController::class, 'store']);
+        Route::put('/admin/tickets/{id}/escalate', [AdminTicketController::class, 'escalate']);
+        Route::put('/admin/tickets/{id}/updateStatus', [AdminTicketController::class, 'updateStatus']);
         Route::apiResource('admin/categories', CategoryController::class);
         Route::post('/admin/faqs', [FaqController::class, 'store']);
         Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
@@ -46,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
         Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/admin/dashboard/details', [AdminDashboardController::class, 'details']);
+        Route::put('/admin/tickets/{id}/updatePriority', [AdminTicketController::class, 'updatePriority']);
     });
 
     Route::middleware('is.agent')->group(function () {
@@ -55,10 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/agent/tickets/{id}/assign', [AgentTicketController::class, 'assign']);
         Route::put('/agent/tickets/{id}/close', [AgentTicketController::class, 'close']);
         Route::put('/agent/tickets/{id}/updateStatus', [AgentTicketController::class, 'updateStatus']);
-        Route::post('/agent/ticket/{id}/messages', [MessageController::class, 'store']);
-        Route::get('/agent/ticket/{id}/messages', [MessageController::class, 'index']);
+        Route::post('/agent/tickets/{id}/messages', [MessageController::class, 'store']);
+        Route::get('/agent/tickets/{id}/messages', [MessageController::class, 'index']);
         Route::put('/agent/tickets/{id}/escalate', [AgentTicketController::class, 'escalate']);
         Route::get('/agent/dashboard/stats', [AgentDashboardController::class, 'stats']);
+        Route::put('/agent/tickets/{id}/updatePriority', [AgentTicketController::class, 'updatePriority']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
@@ -68,11 +74,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('is.user')->group(function () {
-        Route::post('/ticket', [TicketController::class, 'store']);
+        Route::post('/tickets', [TicketController::class, 'store']);
         Route::get('/tickets', [TicketController::class, 'index']);
-        Route::get('/ticket/{id}', [TicketController::class, 'show']);
-        Route::post('/ticket/{id}/messages', [MessageController::class, 'store']);
-        Route::get('/ticket/{id}/messages', [MessageController::class, 'index']);
+        Route::get('/tickets/{id}', [TicketController::class, 'show']);
+        Route::post('/tickets/{id}/messages', [MessageController::class, 'store']);
+        Route::get('/tickets/{id}/messages', [MessageController::class, 'index']);
     });
 
 });
