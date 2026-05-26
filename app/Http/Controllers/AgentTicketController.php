@@ -53,6 +53,9 @@ class AgentTicketController extends Controller
         $tickets= Ticket::where('company_id', $user->company_id)
             ->where('status', 'escalated')
             ->whereNull('assignee_id')
+            ->with(['user', 'category'])
+            ->orderByRaw("FIELD(IFNULL(priority, 'low'), 'high', 'medium', 'low')")
+            ->orderBy('created_at', 'asc')
             ->paginate(15);
 
         return $tickets;

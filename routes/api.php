@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/admin/dashboard/details', [AdminDashboardController::class, 'details']);
         Route::put('/admin/tickets/{id}/updatePriority', [AdminTicketController::class, 'updatePriority']);
+        Route::get('/admin/tickets/escalated/available', [AdminTicketController::class, 'escalatedAvailable']);
     });
 
     Route::middleware('is.agent')->group(function () {
