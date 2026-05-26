@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class MessageController extends Controller
 {
@@ -16,17 +17,18 @@ class MessageController extends Controller
     {
         $user = Auth::user();
         
-        $query = Ticket::where('company_id', $user->company_id);
+        // Trova il ticket (404 se non esiste)
+        $ticket = Ticket::findOrFail($id);
 
-        if($user->role === 'user'){
-            $query->where('user_id', $user->id);
+        // Se la Policy nega ci comportiamoci come se il ticket non esistesse (404, non 403)
+        if (!Gate::allows('view', $ticket)) {
+            abort(404);
         }
 
-        $ticket = $query->findOrFail($id);
-
+        // Lettura messaggi con filtro ruolo
         $messagesQuery = $ticket->messages()->with('user:id,name,surname,role');
 
-        if($user->role === 'user'){
+        if ($user->role === 'user') {
             $messagesQuery->where('type', 'public');
         }
 
