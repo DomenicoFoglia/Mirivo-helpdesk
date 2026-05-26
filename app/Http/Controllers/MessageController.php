@@ -24,7 +24,7 @@ class MessageController extends Controller
 
         $ticket = $query->findOrFail($id);
 
-        $messagesQuery = $ticket->messages();
+        $messagesQuery = $ticket->messages()->with('user:id,name,surname,role');
 
         if($user->role === 'user'){
             $messagesQuery->where('type', 'public');
