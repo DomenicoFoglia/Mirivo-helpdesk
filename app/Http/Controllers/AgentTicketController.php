@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class AgentTicketController extends Controller
 {
@@ -217,9 +218,15 @@ class AgentTicketController extends Controller
      */
     public function show(string $id)
     {
-        $user = Auth::user();
+        $ticket = Ticket::with([
+            'assignee:id,name,surname,level',
+            'category',
+            'user:id,name,surname',
+        ])->findOrFail($id);
 
-        $ticket = Ticket::where('company_id', $user->company_id)->findOrFail($id);
+        if(!Gate::allows('view', $ticket)){
+            abort(404);
+        }
 
         return $ticket;
     }

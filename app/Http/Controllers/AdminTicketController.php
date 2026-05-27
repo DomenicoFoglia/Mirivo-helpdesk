@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class AdminTicketController extends Controller
 {
@@ -12,12 +13,16 @@ class AdminTicketController extends Controller
      * Mostra il ticket
      */
     public function show(string $id){
-        $user = Auth::user();
-
-        // Aggiungiamo anche 'assignee' e 'category'
-        $ticket = Ticket::where('company_id', $user->company_id)
-            ->with(['assignee', 'category'])
+        $ticket = Ticket::with([
+            'assignee:id,name,surname,level',
+            'category',
+            'user:id,name,surname'
+            ])
             ->findOrFail($id);
+
+        if(!Gate::allows('view', $ticket)){
+            abort(404);
+        }
 
         return $ticket;
     }

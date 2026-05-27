@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class TicketController extends Controller
 {
@@ -63,15 +64,15 @@ class TicketController extends Controller
      */
     public function show(string $id)
     {
-        $user = Auth::user();
+        $ticket = Ticket::with([
+            'assignee:id,name,surname,level',
+            'category',
+        ])->findOrFail($id);
 
-        // Non inserirsco WITH('MESSAGES') perche' se il ticket ha 500 messaggi questi verrebero
-        // caricati tutti insieme appesantendo la richiesta. Li gestiremo in MessageController
-        $ticket = $user->userTickets()->with(['assignee', 'category'])->findOrFail($id);
+        if(!Gate::allows('view', $ticket)){
+            abort(404);
+        }
 
-        // Avremmo potuto fare anche cosi:
-        // $ticket = Ticket::where('company_id', $user->company_id)->where('user_id', $user->id)->findOrfail($id);
-        
         return $ticket;
     }
 
