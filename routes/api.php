@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/faqs', [FaqController::class, 'index']);
     Route::get('/faqs/{id}', [FaqController::class, 'show']);
     Route::put('/user/theme', [ProfileController::class, 'updateTheme']);
+    Route::put('/user/profile', [ProfileController::class, 'updateProfile']);
+    Route::put('/user/password', [ProfileController::class, 'updatePassword']);
     
 
     Route::middleware('is.admin')->group(function () {
