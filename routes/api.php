@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/invitations', [InvitationController::class, 'index']);
         Route::post('/admin/invitations', [InvitationController::class, 'store']);
         Route::delete('/admin/invitations/{id}', [InvitationController::class, 'destroy']);
+        Route::get('/admin/tickets', [AdminTicketController::class, 'index']);
         Route::get('/admin/tickets/{id}', [AdminTicketController::class, 'show']);
         Route::get('/admin/tickets/{id}/messages', [MessageController::class, 'index']);
         Route::post('/admin/tickets/{id}/messages', [MessageController::class, 'store']);
