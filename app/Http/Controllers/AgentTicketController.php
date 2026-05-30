@@ -14,18 +14,31 @@ class AgentTicketController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        //Rimosso, abbiamo gia gestito questo controllo nel middleware
-        // if($user->role !== 'agent'){
-        //     return response()->json([
-        //         'message' => 'Non autorizzato'
-        //     ], 404);
-        // }
-
-        $tickets = $user->assigneeTickets()->paginate(15);
+        $tickets = $user->assigneeTickets()
+            ->where('company_id', $user->company_id)
+            ->with([
+                'category',
+                'user:id,name,surname'
+            ])
+            ->when($request->filled('status'), function ($query) use ($request){
+                $query->where('status', $request->status);
+            })
+            ->when($request->filled('priority'), function($query) use ($request){
+                $query->where('priority', $request->priority);
+            })
+            ->when($request->filled('category_id'), function($query) use ($request){
+                $query->where('category_id', $request->category_id);
+            })
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return $tickets;
     }
