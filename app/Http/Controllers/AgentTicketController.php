@@ -46,14 +46,27 @@ class AgentTicketController extends Controller
     /**
      * Restituisce i ticket non ancora assegnati
      */
-    public function available(){
+    public function available(Request $request){
 
         $user = Auth::user();
 
         $tickets = Ticket::where('company_id', $user->company_id)
             ->where('status', 'open')
             ->whereNull('assignee_id')
-            ->paginate(15);
+            ->with(['user:id,name,surname', 'category'])
+            ->when($request->filled('priority'), function ($query) use ($request){
+                $query->where('priority', $request->priority);
+            })
+            ->when($request->filled('category_id'), function ($query) use ($request){
+                $query->where('category_id', $request->category_id);
+            })
+            ->when($request->filled('search'), function ($query) use ($request){
+                $query->where('title', 'like', '%' . $request->search . '%');
+            })
+            ->orderByRaw("FIELD(IFNULL(priority, 'low'), 'high', 'medium', 'low')")
+            ->orderBy('created_at','asc')
+            ->paginate(15)
+            ->withQueryString();
 
         return $tickets;
     }

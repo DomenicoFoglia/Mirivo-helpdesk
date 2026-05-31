@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/agent/tickets/{id}/escalate', [AgentTicketController::class, 'escalate']);
         Route::get('/agent/dashboard/stats', [AgentDashboardController::class, 'stats']);
         Route::put('/agent/tickets/{id}/updatePriority', [AgentTicketController::class, 'updatePriority']);
+        Route::get('/agent/categories', [CategoryController::class, 'index']);
     });
 
     Route::middleware('is.agent.l2')->group(function () {
