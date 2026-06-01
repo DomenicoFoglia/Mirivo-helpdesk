@@ -15,7 +15,7 @@ class CategoryController extends Controller
     {
         $user = Auth::user();
 
-        $categories = Category::where('company_id', $user->company_id)->paginate(15);
+        $categories = Category::where('company_id', $user->company_id)->get();
 
         return $categories;
     }
