@@ -61,6 +61,9 @@ class AuthController extends Controller
             return ['user' => $user, 'company' => $company];
         });
 
+        // Aggiungiamo la company
+        $newUser['user']->load('company');
+
         // Generiamo il token sanctum da restituire poi al frontend per evitare che
         // l'utente sia costretto a fare il login dopo la registrazione
         $token = $newUser['user']->createToken('auth_token')->plainTextToken;
@@ -138,6 +141,7 @@ class AuthController extends Controller
 
         $invitation->accepted_at = now();
         $invitation->save();
+        $user->load('company');
         $accessToken = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -148,6 +152,29 @@ class AuthController extends Controller
         
     }
 
+    // Metodo mostra invito
+    public function showInvite(string $token){
+        
+        // Cerca l'invito che abbia token passato, che non e' stato ancora accettato (quindi accepted_at = null)
+        // che non e' ancora scaduto e lo ritorna insieme a id e nome della company
+        $invitation = Invitation::where('token', $token)
+            ->whereNull('accepted_at')
+            ->where('expires_at', '>', now())
+            ->with('company:id,name')
+            ->first();
+
+        // Se una delle condizioni non e' vera ritorna 404 (usiamo 404 per non dare informazioni all'esterno)
+        abort_unless($invitation, 404);
+
+        return response()->json([
+            'email' => $invitation->email,
+            'role' => $invitation->role,
+            'company' => [
+                'id' => $invitation->company->id,
+                'name' => $invitation->company->name
+            ]
+        ]);
+    }
 }
 
 

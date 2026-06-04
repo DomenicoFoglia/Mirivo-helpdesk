@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvitationMail;
 
 class InvitationController extends Controller
 {
@@ -46,6 +48,8 @@ class InvitationController extends Controller
             'token' => $token,
             'expires_at' => now()->addDays(7)
         ]);
+
+        Mail::to($invite->email)->send(new InvitationMail($invite));
 
         return response()->json($invite, 201);
     }
