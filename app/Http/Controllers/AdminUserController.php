@@ -5,17 +5,33 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        $users = User::where('company_id', $user->company_id)->paginate(15);
+        $users = User::where('company_id', $user->company_id)
+            ->when($request->filled('role'), function($query) use ($request){
+                $query->where('role', $request->role);
+            })
+            ->when($request->filled('level'), function($query) use ($request){
+                $query->where('level', $request->level);
+            })
+            ->when($request->filled('search'), function($query) use ($request){
+                $query->where(function($q) use ($request){
+                    $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('surname', 'like', '%' . $request->search . '%')
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->paginate(15);
 
         return $users;
     }
@@ -33,7 +49,12 @@ class AdminUserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $user = Auth::user();
+
+        $userToShow = User::where('company_id', $user->company_id)
+            ->findOrFail($id);
+
+        return $userToShow;
     }
 
     /**
@@ -51,6 +72,9 @@ class AdminUserController extends Controller
             ], 403);
 
         $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'surname' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users')->ignore($updatedUser->id)],
             'role' => 'required|in:agent,user',
             'level' => 'nullable|in:1,2'
         ]);
@@ -87,4 +111,23 @@ class AdminUserController extends Controller
 
         return response()->noContent();
     }
+
+    /**
+     * Resetta password.
+     */
+    public function resetPassword(string $id)
+    {
+        $admin = Auth::user();
+
+        $userToReset = User::where('company_id', $admin->company_id)
+            ->findOrFail($id);
+
+        Password::sendResetLink(['email' => $userToReset->email]);
+
+        return response()->json(['message' => 'Email di reset inviata']);
+    }
+
+
+
+
 }

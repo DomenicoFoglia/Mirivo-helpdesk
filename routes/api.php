@@ -51,11 +51,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
         Route::get('/admin/users', [AdminUserController::class, 'index']);
         Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
+        Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
         Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy']);
         Route::get('/admin/dashboard/stats', [AdminDashboardController::class, 'stats']);
         Route::get('/admin/dashboard/details', [AdminDashboardController::class, 'details']);
         Route::put('/admin/tickets/{id}/updatePriority', [AdminTicketController::class, 'updatePriority']);
         Route::get('/admin/tickets/escalated/available', [AdminTicketController::class, 'escalatedAvailable']);
+        Route::post('/admin/users/{user}/reset-password', [AdminUserController::class, 'resetPassword']);
     });
 
     Route::middleware('is.agent')->group(function () {

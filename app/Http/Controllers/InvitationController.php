@@ -19,7 +19,7 @@ class InvitationController extends Controller
     {
         $user = Auth::user();
 
-        $invitations = Invitation::where('company_id', $user->company_id)->paginate(15);
+        $invitations = Invitation::where('company_id', $user->company_id)->orderBy('created_at', 'desc')->paginate(15);
 
         return $invitations;
     }
