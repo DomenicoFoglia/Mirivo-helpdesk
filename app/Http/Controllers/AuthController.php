@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Password as PasswordBroker;
+use Illuminate\Support\Facades\Hash;
 
 
 class AuthController extends Controller
@@ -174,6 +176,37 @@ class AuthController extends Controller
                 'name' => $invitation->company->name
             ]
         ]);
+    }
+
+    // Funzione per resettare la password dal link mandato dall'admin via email
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)->mixedCase()->numbers()->symbols()
+            ]
+        ]);
+
+        $status = PasswordBroker::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        if ($status === PasswordBroker::PASSWORD_RESET) {
+            return response()->json(['message' => 'Password aggiornata con successo']);
+        }
+
+        return response()->json([
+            'message' => 'Token non valido o scaduto'
+        ], 422);
     }
 }
 

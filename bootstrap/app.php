@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'is.agent.l2' => \App\Http\Middleware\IsAgentL2::class,
             'is.user'     => \App\Http\Middleware\IsUser::class,
         ]);
+
+        $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

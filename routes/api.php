@@ -21,6 +21,7 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/invite/{token}', [AuthController::class, 'registerByInvite']);
 Route::get('/auth/invite/{token}', [AuthController::class, 'showInvite']);
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
 
