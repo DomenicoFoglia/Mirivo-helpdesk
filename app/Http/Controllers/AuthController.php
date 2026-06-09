@@ -208,6 +208,20 @@ class AuthController extends Controller
             'message' => 'Token non valido o scaduto'
         ], 422);
     }
+
+
+    // Altra funzione per resettare la password ma fatta in autonomia "Hai dimenticato la password?"
+    public function forgotPassword(Request $request){
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        PasswordBroker::sendResetLink(['email' => $request->email]);
+
+        return response()->json([
+            'message' => __('passwords.sent')
+        ], 200);
+    }
 }
 
 
