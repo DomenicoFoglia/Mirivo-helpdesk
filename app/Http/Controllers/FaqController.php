@@ -19,7 +19,7 @@ class FaqController extends Controller
         // Filtriamo direttamente per company_id senza caricare il model Company in memoria.
         // $user->company_id legge la colonna FK dall'utente autenticato (1 query invece di 2).
         // Garantisce l'isolamento multi-tenant: ogni utente vede solo le FAQ della propria azienda.
-        $faqs = Faq::where('company_id', $user->company_id)->paginate(15);
+        $faqs = Faq::where('company_id', $user->company_id)->with('category')->get();
         
         return $faqs;
     }
@@ -43,6 +43,8 @@ class FaqController extends Controller
                 'question' => $validated['question'],
                 'answer' => $validated['answer']
             ]);
+        
+        $faq->load('category');
 
         return response()->json($faq, 201);
     }
@@ -54,7 +56,7 @@ class FaqController extends Controller
     {
         $user = Auth::user();
 
-        $faq = Faq::where('company_id', $user->company_id)->findOrFail($id);
+        $faq = Faq::where('company_id', $user->company_id)->with('category')->findOrFail($id);
 
         return $faq;
     }
@@ -75,6 +77,7 @@ class FaqController extends Controller
         ]);
 
         $faq->update($validated);
+        $faq->load('category');
 
         return $faq;
     }

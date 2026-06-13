@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is.agent'    => \App\Http\Middleware\IsAgent::class,
             'is.agent.l2' => \App\Http\Middleware\IsAgentL2::class,
             'is.user'     => \App\Http\Middleware\IsUser::class,
+            'is.admin.or.agent.l2' => \App\Http\Middleware\IsAdminOrAgentL2::class,
         ]);
 
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);

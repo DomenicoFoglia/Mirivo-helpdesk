@@ -48,9 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/tickets/{id}/escalate', [AdminTicketController::class, 'escalate']);
         Route::put('/admin/tickets/{id}/updateStatus', [AdminTicketController::class, 'updateStatus']);
         Route::apiResource('admin/categories', CategoryController::class);
-        Route::post('/admin/faqs', [FaqController::class, 'store']);
-        Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
-        Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
+        // Route::post('/admin/faqs', [FaqController::class, 'store']);
+        // Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
+        // Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
         Route::get('/admin/users', [AdminUserController::class, 'index']);
         Route::put('/admin/users/{user}', [AdminUserController::class, 'update']);
         Route::get('/admin/users/{user}', [AdminUserController::class, 'show']);
@@ -83,12 +83,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/agent/tickets/{id}/assignEscalated', [AgentTicketController::class, 'assignEscalated']);
     });
 
+    Route::middleware('is.admin.or.agent.l2')->group(function () {
+        Route::post('/admin/faqs', [FaqController::class, 'store']);
+        Route::put('/admin/faqs/{faq}', [FaqController::class, 'update']);
+        Route::delete('/admin/faqs/{faq}', [FaqController::class, 'destroy']);
+    });
+
     Route::middleware('is.user')->group(function () {
         Route::post('/tickets', [TicketController::class, 'store']);
         Route::get('/tickets', [TicketController::class, 'index']);
         Route::get('/tickets/{id}', [TicketController::class, 'show']);
         Route::post('/tickets/{id}/messages', [MessageController::class, 'store']);
         Route::get('/tickets/{id}/messages', [MessageController::class, 'index']);
+        Route::get('/user/categories', [CategoryController::class, 'index']);
     });
 
 });
