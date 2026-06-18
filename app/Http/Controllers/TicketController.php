@@ -8,17 +8,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
-        $tickets = $user->userTickets()->latest()->paginate(15);
+        $tickets = $user->userTickets()
+            ->with(['category', 'assignee:id,name,surname,level'])
+            ->when($request->filled('state'), function ($q) use ($request) {
+                if ($request->state === 'closed') {
+                    $q->where('status', 'closed');
+                } elseif ($request->state === 'open') {
+                    $q->whereIn('status', ['open', 'working', 'escalated']);
+                }
+            })
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%');
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
         return $tickets;
     }
@@ -33,7 +48,7 @@ class TicketController extends Controller
 
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
-                'category_id' => 'required|exists:categories,id',
+                'category_id' => ['required', Rule::exists('categories', 'id')->where('company_id', $user->company_id)],
                 'message' => 'required|string'
             ]);
 
