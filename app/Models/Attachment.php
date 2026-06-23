@@ -5,12 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['ticket_id', 'user_id', 'filename', 'path', 'mime_type', 'size'])]
+#[Fillable(['message_id', 'user_id', 'filename', 'original_filename', 'path', 'mime_type', 'size'])]
 
 class Attachment extends Model
 {
-    public function ticket(){
-        return $this->belongsTo(Ticket::class);
+    protected $casts = [
+        'size' => 'integer',
+    ];
+
+    public function message(){
+        return $this->belongsTo(Message::class);
     }
 
     public function user(){

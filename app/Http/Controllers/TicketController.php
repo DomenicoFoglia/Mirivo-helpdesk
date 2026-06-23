@@ -34,7 +34,6 @@ class TicketController extends Controller
             ->latest()
             ->paginate(15)
             ->withQueryString();
-
         return $tickets;
     }
 

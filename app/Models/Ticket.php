@@ -33,7 +33,13 @@ class Ticket extends Model
         return $this->belongsToMany(Tag::class);
     }
 
-    public function attachments(){
-        return $this->hasMany(Attachment::class);
-    }
+
+    // Refactoring: Gli attachment non sono piu' collegati direttamente ai Ticket quindi questo metodo non puo'
+    // piu' funzionare. 
+    // Si potrebbe fare 'hasManyThrough' e riuscire a collegare i Ticket direttamente agli attachemnt tramite 
+    // Message ma per ora non ci serve
+    // public function attachments(){
+        // Attachments are related to tickets via messages, so use hasManyThrough
+    //     return $this->hasManyThrough(Attachment::class, Message::class);
+    // }
 }

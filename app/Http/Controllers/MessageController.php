@@ -7,6 +7,10 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Models\Attachment;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class MessageController extends Controller
 {
@@ -40,36 +44,81 @@ class MessageController extends Controller
      */
     public function store(Request $request, string $id)
     {
-        $user  = Auth::user();
+        $user = Auth::user();
 
+        // Recupera ticket 
         $ticket = Ticket::where('company_id', $user->company_id)
             ->findOrFail($id);
 
+        // Valida
         $validated = $request->validate([
             'body' => 'required|string',
-            'type' => 'nullable|in:public,private'
+            'type' => 'nullable|in:public,private',
+            'attachments' => 'sometimes|array|max:5',
+            'attachments.*' => 'file|max:5120|mimes:jpg,jpeg,png,webp,pdf,doc,docx,odt,txt'
         ]);
 
+        // Check permessi
         $type = $validated['type'] ?? 'public';
 
-        if($type === 'public'){
+        if ($type === 'public') {
             $hasAccess = $ticket->user_id === $user->id || $ticket->assignee_id === $user->id || $user->role === 'admin';
-        }else{
+        } else {
             $hasAccess = $user->role === 'agent' || $user->role === 'admin';
         }
 
-        if(!$hasAccess){
+        if (!$hasAccess) {
             return response()->json([
                 'message' => 'Azione non permessa'
             ], 403);
         }
-        
-        return response()->json(Message::create([
-            'body' => $validated['body'],
-            'user_id' => $user->id,
-            'ticket_id' => $ticket->id,
-            'type' => $type
-        ]), 201);
+
+        // Array per i file da salvare DOPO la transazione
+        $pendingFiles = [];
+
+        // Transazione: SOLO scritture su DB
+        $message = DB::transaction(function () use ($request, $ticket, $user, $validated, $type, &$pendingFiles) {
+            $msg = Message::create([
+                'body' => $validated['body'],
+                'user_id' => $user->id,
+                'ticket_id' => $ticket->id,
+                'type' => $type
+            ]);
+
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                    $path = "attachments/{$msg->id}/{$filename}";
+
+                    Attachment::create([
+                        'message_id' => $msg->id,
+                        'user_id' => $user->id,
+                        'filename' => $filename,
+                        'original_filename' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'mime_type' => $file->getClientMimeType(),
+                        'size' => $file->getSize(),
+                    ]);
+
+                    $pendingFiles[] = [
+                        'file' => $file,
+                        'directory' => "attachments/{$msg->id}",
+                        'filename' => $filename,
+                    ];
+                }
+            }
+
+            return $msg;
+        });
+
+        // Transazione COMMIT-ata. Salvataggio file su disk.
+        foreach ($pendingFiles as $pf) {
+            $pf['file']->storeAs($pf['directory'], $pf['filename'], 'local');
+        }
+
+        $message->load(['attachments', 'user:id,name,surname,role']);
+
+        return response()->json($message, 201);
     }
 
     /**
