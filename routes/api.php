@@ -5,6 +5,7 @@ use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AgentDashboardController;
 use App\Http\Controllers\AgentTicketController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FaqController;
@@ -35,6 +36,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/user/theme', [ProfileController::class, 'updateTheme']);
     Route::put('/user/profile', [ProfileController::class, 'updateProfile']);
     Route::put('/user/password', [ProfileController::class, 'updatePassword']);
+    Route::get('/attachments/{id}/download', [AttachmentController::class, 'download']);
+    Route::get('/attachments/{id}/preview', [AttachmentController::class, 'preview']);
+    Route::delete('/attachments/{id}', [AttachmentController::class, 'destroy']);
     
 
     Route::middleware('is.admin')->group(function () {
