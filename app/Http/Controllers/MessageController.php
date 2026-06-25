@@ -30,7 +30,7 @@ class MessageController extends Controller
         }
 
         // Lettura messaggi con filtro ruolo
-        $messagesQuery = $ticket->messages()->with('user:id,name,surname,role');
+        $messagesQuery = $ticket->messages()->with(['user:id,name,surname,role', 'attachments']);
 
         if ($user->role === 'user') {
             $messagesQuery->where('type', 'public');
@@ -52,10 +52,14 @@ class MessageController extends Controller
 
         // Valida
         $validated = $request->validate([
-            'body' => 'required|string',
+            'body' => 'required_without:attachments|nullable|string',
             'type' => 'nullable|in:public,private',
             'attachments' => 'sometimes|array|max:5',
-            'attachments.*' => 'file|max:5120|mimes:jpg,jpeg,png,webp,pdf,doc,docx,odt,txt'
+            'attachments.*' => [
+                'file',
+                'max:5120',
+                'mimetypes:image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,text/plain'
+            ]
         ]);
 
         // Check permessi
@@ -79,7 +83,7 @@ class MessageController extends Controller
         // Transazione: SOLO scritture su DB
         $message = DB::transaction(function () use ($request, $ticket, $user, $validated, $type, &$pendingFiles) {
             $msg = Message::create([
-                'body' => $validated['body'],
+                'body' => $validated['body'] ?? '',
                 'user_id' => $user->id,
                 'ticket_id' => $ticket->id,
                 'type' => $type
