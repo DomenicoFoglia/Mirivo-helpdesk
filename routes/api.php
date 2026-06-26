@@ -8,6 +8,7 @@ use App\Http\Controllers\AgentTicketController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MessageController;
@@ -100,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/tickets/{id}/messages', [MessageController::class, 'store']);
         Route::get('/tickets/{id}/messages', [MessageController::class, 'index']);
         Route::get('/user/categories', [CategoryController::class, 'index']);
+        Route::post('/chatbot/ask', [ChatbotController::class, 'ask'])->middleware('throttle:20,1')->name('chatbot.ask');
     });
 
 });
