@@ -34,7 +34,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'surname' => 'required|string|max:255',
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)]
+            'email' => ['required', 'email:dns', Rule::unique('users')->ignore($user->id)]
         ]);
 
         $user->update($validated);

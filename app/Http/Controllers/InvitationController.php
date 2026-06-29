@@ -32,10 +32,15 @@ class InvitationController extends Controller
         $user  = Auth::user();
 
         $validated = $request->validate([
-            'email' => Rule::unique('invitations', 'email')->where(function ($query) {
-                        return $query->whereNull('accepted_at')
-                                    ->where('expires_at', '>', now());
-                        }),
+            'email' => [
+                'required',
+                'email:dns',
+                'max:255',
+                Rule::unique('invitations', 'email')->where(function ($query) {
+                    return $query->whereNull('accepted_at')
+                                ->where('expires_at', '>', now());
+                }),
+            ],
             'role' => 'required|in:agent,user',
         ]);
 
