@@ -66,16 +66,30 @@ class AuthController extends Controller
         // Aggiungiamo la company
         $newUser['user']->load('company');
 
+        // (VECCHIA VERSIONE: TOKEN SANCTUM)
         // Generiamo il token sanctum da restituire poi al frontend per evitare che
         // l'utente sia costretto a fare il login dopo la registrazione
-        $token = $newUser['user']->createToken('auth_token')->plainTextToken;
+        // $token = $newUser['user']->createToken('auth_token')->plainTextToken;
+
+        // return response()->json([
+        //         'message' => 'Utente e azienda creati correttamente',
+        //         'company' => $newUser['company'],
+        //         'user' => $newUser['user'],
+        //         'token' => $token
+        //     ], 201);
+
+        // (NUOVA VERSIONE: SESSIONE COOKIE) 
+        // Login l'utente nella sessione cookie (no più token Bearer)
+        // Auth::login($user) mette l'utente nella sessione corrente (cookie httpOnly);
+        Auth::login($newUser['user']);
+        // $request->session()->regenerate() rigenera l'ID di sessione (pratica di sicurezza)
+        $request->session()->regenerate();
 
         return response()->json([
-                'message' => 'Utente e azienda creati correttamente',
-                'company' => $newUser['company'],
-                'user' => $newUser['user'],
-                'token' => $token
-            ], 201);
+            'message' => 'Utente e azienda creati correttamente',
+            'company' => $newUser['company'],
+            'user' => $newUser['user']
+        ], 201);
     }
 
     public function login(Request $request){
@@ -91,19 +105,30 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $request->session()->regenerate();
+
         //Ho aggiunto with('company') perche' poi nel frontend ho bisogno delle info dell'azienda
         $user = User::with('company')->find(Auth::id());
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Non utilizziamo piu' i token
+        // $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'user' => $user,
-            'token' => $token,
         ], 200);
     }
 
     public function logout(Request $request){
-        $request->user()->currentAccessToken()->delete();
+        // (Vecchia versione)
+        // $request->user()->currentAccessToken()->delete();
+
+        // NUOVA VERSIONE
+        // Auth::guard('web')->logout() rimuove l'utente dalla sessione;
+        Auth::guard('web')->logout();
+        // session()->invalidate() cancella tutti i dati di sessione;
+        $request->session()->invalidate();
+        // session()->regenerateToken() rigenera il CSRF token per la prossima sessione
+        $request->session()->regenerateToken();
 
         return response()->json([
             'message' => 'Logout effettuato'
@@ -144,12 +169,16 @@ class AuthController extends Controller
         $invitation->accepted_at = now();
         $invitation->save();
         $user->load('company');
-        $accessToken = $user->createToken('auth_token')->plainTextToken;
+        // VECCHIA VERSIONE
+        // $accessToken = $user->createToken('auth_token')->plainTextToken;
+
+        // NUOVA VERSIONE
+        Auth::login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'message' => 'Registrazione avvenuta con successo',
             'user' => $user,
-            'token' => $accessToken
         ], 201);
         
     }
