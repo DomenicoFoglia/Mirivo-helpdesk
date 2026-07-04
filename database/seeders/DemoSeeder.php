@@ -79,37 +79,44 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * Genera un logo placeholder PNG 200x200 con lettere "AC" su sfondo ambra.
-     * Richiede l'estensione GD di PHP (di solito attiva).
+     * Copia il logo Acme Corp da database/seeders/assets/ verso storage/app/public/logos/.
+     * Se il file sorgente non esiste, fallback al placeholder generato via GD.
      * Ritorna il path relativo tipo "logos/acme-demo.png".
      */
     private function preparePlaceholderLogo(): string
     {
         $filename = 'logos/acme-demo.png';
-        $fullPath = storage_path('app/public/' . $filename);
+        $destinationPath = storage_path('app/public/' . $filename);
+        $sourcePath = database_path('seeders/assets/acme-logo.png');
 
-        if (file_exists($fullPath)) {
-            return $filename;
-        }
-
-        $dir = dirname($fullPath);
+        $dir = dirname($destinationPath);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        $img = imagecreatetruecolor(200, 200);
-        $bg = imagecolorallocate($img, 186, 117, 23);
-        $white = imagecolorallocate($img, 255, 255, 255);
-        imagefill($img, 0, 0, $bg);
+        // Se il file di origine esiste, lo copiamo (idempotente: sovrascrive sempre).
+        if (file_exists($sourcePath)) {
+            copy($sourcePath, $destinationPath);
+            return $filename;
+        }
 
-        $font = 5;
-        $text = 'AC';
-        $textWidth = imagefontwidth($font) * strlen($text);
-        $textHeight = imagefontheight($font);
-        imagestring($img, $font, (200 - $textWidth) / 2, (200 - $textHeight) / 2, $text, $white);
+        // Fallback: se manca il file, generiamo un placeholder via GD.
+        // Utile se qualcuno clona il repo senza avere l'asset commesso.
+        if (!file_exists($destinationPath)) {
+            $img = imagecreatetruecolor(200, 200);
+            $bg = imagecolorallocate($img, 186, 117, 23);
+            $white = imagecolorallocate($img, 255, 255, 255);
+            imagefill($img, 0, 0, $bg);
 
-        imagepng($img, $fullPath);
-        imagedestroy($img);
+            $font = 5;
+            $text = 'AC';
+            $textWidth = imagefontwidth($font) * strlen($text);
+            $textHeight = imagefontheight($font);
+            imagestring($img, $font, (200 - $textWidth) / 2, (200 - $textHeight) / 2, $text, $white);
+
+            imagepng($img, $destinationPath);
+            imagedestroy($img);
+        }
 
         return $filename;
     }
