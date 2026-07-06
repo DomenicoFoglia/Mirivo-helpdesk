@@ -75,12 +75,25 @@ class AttachmentController extends Controller
         }
 
         $path = $attachment->path;
+        $message = $attachment->message;
 
         // Elimina prima da DB, poi da disk
         $attachment->delete();
-
         Storage::disk('local')->delete($path);
 
-        return response()->noContent();
-    }
+        // Se il messaggio resta senza testo e senza altri allegati, cancellalo
+        $hasText = filled(trim($message->body ?? ''));
+        $hasOtherAttachments = $message->attachments()->exists();
+        $messageDeleted = false;
+
+        if (!$hasText && !$hasOtherAttachments) {
+            $message->delete();
+            $messageDeleted = true;
+        }
+
+        return response()->json([
+            'message_deleted' => $messageDeleted,
+            'message_id' => $message->id,
+            ]);
+        }
 }
