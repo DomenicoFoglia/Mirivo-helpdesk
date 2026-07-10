@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/tickets/{id}/updatePriority', [AdminTicketController::class, 'updatePriority']);
         Route::get('/admin/tickets/escalated/available', [AdminTicketController::class, 'escalatedAvailable']);
         Route::post('/admin/users/{user}/reset-password', [AdminUserController::class, 'resetPassword']);
+        Route::post('/admin/tickets/{id}/faq-draft', [FaqController::class, 'draftFromTicket'])->middleware('throttle:10,1');
     });
 
     Route::middleware('is.agent')->group(function () {

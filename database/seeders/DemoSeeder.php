@@ -50,6 +50,7 @@ class DemoSeeder extends Seeder
             $this->call(ChatbotFaqsSeeder::class);
 
             $tickets = $this->createTickets($company, $users, $categories, $faker);
+            $this->createFaqDemoTicket($company, $users, $categories);
             $this->createAttachments($tickets);
             $this->createInvitations($company);
         });
@@ -456,6 +457,92 @@ class DemoSeeder extends Seeder
                 'expires_at' => Carbon::now()->addDays(rand(1, 7)),
                 'created_at' => Carbon::now()->subDays(rand(1, 3)),
                 'updated_at' => Carbon::now()->subDays(rand(1, 3)),
+            ]);
+        }
+    }
+
+    /**
+     * Crea un ticket dedicato al test della feature "Trasforma in FAQ".
+     * A differenza degli altri 25 ticket generati da createTickets(),
+     * questo ha un thread realistico scritto a mano, senza lorem ipsum,
+     * cosi' l'AI ha materiale utile per generare una FAQ sensata.
+     *
+     * Idempotente: firstOrCreate sul titolo. Se esiste gia', non ricrea
+     * ne' ticket ne' messaggi.
+     */
+    private function createFaqDemoTicket(Company $company, array $users, array $categories): void
+    {
+        $author = $users['users'][0];       // Luigi Verdi
+        $agent = $users['agent_l1'];        // Giovanni Bianchi
+        $category = $categories['Supporto tecnico'];
+
+        $openedAt = Carbon::now()->subDays(5);
+        $closedAt = $openedAt->copy()->addDays(2);
+
+        $ticket = Ticket::firstOrCreate(
+            ['title' => "Errore 'Session expired' durante l'esportazione in PDF dei rapportini"],
+            [
+                'company_id'   => $company->id,
+                'user_id'      => $author->id,
+                'assignee_id'  => $agent->id,
+                'category_id'  => $category->id,
+                'status'       => 'closed',
+                'priority'     => 'medium',
+                'created_at'   => $openedAt,
+                'updated_at'   => $closedAt,
+                'closed_at'    => $closedAt,
+            ]
+        );
+
+        // Se il ticket esisteva gia', wasRecentlyCreated e' false: usciamo,
+        // i messaggi ci sono gia'. Questo garantisce idempotenza reale.
+        if (!$ticket->wasRecentlyCreated) {
+            return;
+        }
+
+        // Thread realistico: 6 messaggi pubblici, alternati user/agent,
+        // con tempi crescenti per riflettere l'ordine cronologico.
+        $thread = [
+            [
+                'user' => $author,
+                'at'   => $openedAt,
+                'body' => "Buongiorno, dal modulo Rapportini non riesco piu' a esportare in PDF le ore lavorate del mese. Quando clicco su \"Esporta PDF\" appare un banner rosso in alto con scritto \"Session expired, please login again\", ma io sono appena entrato nel sistema. Se rifaccio subito login e ritento, stesso errore. Il problema si presenta solo sull'esportazione, il resto dell'applicazione funziona.",
+            ],
+            [
+                'user' => $agent,
+                'at'   => $openedAt->copy()->addHours(2),
+                'body' => "Salve Luigi, grazie della segnalazione. Prima di indagare piu' a fondo, mi conferma il browser che usa e la versione? E il problema si presenta solo su un tipo di rapportino o su qualsiasi export?",
+            ],
+            [
+                'user' => $author,
+                'at'   => $openedAt->copy()->addDay(),
+                'body' => "Ciao, uso Chrome versione 141 su Windows 11. Ho provato sia con i rapportini singoli che con l'export riepilogativo mensile, stesso errore su entrambi. Dal cellulare (Safari iOS) invece funziona.",
+            ],
+            [
+                'user' => $agent,
+                'at'   => $openedAt->copy()->addDay()->addHours(3),
+                'body' => "Perfetto, il fatto che da mobile funzioni conferma il sospetto. E' un problema noto legato a un cookie di sessione che rimane bloccato in cache su Chrome dopo il rilascio di ieri. La procedura per risolvere e': 1) esca dall'applicazione con il pulsante Logout in alto a destra, 2) apra le impostazioni di Chrome, sezione Privacy e sicurezza, 3) cancelli cookie e dati dei siti solo per il nostro dominio, 4) rientri e ritenti l'export. Mi faccia sapere se risolve.",
+            ],
+            [
+                'user' => $author,
+                'at'   => $openedAt->copy()->addDay()->addHours(4),
+                'body' => "Fatto, ora l'export funziona correttamente. Grazie mille per la rapidita'.",
+            ],
+            [
+                'user' => $agent,
+                'at'   => $closedAt,
+                'body' => "Ottimo Luigi. Se dovesse ricapitare, la procedura e' la stessa: logout, pulizia cookie del nostro dominio, rientro. Rilasceremo una patch per evitare il problema alla radice nei prossimi giorni. Chiudo il ticket, buon lavoro.",
+            ],
+        ];
+
+        foreach ($thread as $msg) {
+            Message::create([
+                'ticket_id'  => $ticket->id,
+                'user_id'    => $msg['user']->id,
+                'body'       => $msg['body'],
+                'type'       => 'public',
+                'created_at' => $msg['at'],
+                'updated_at' => $msg['at'],
             ]);
         }
     }

@@ -6,6 +6,9 @@ use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Models\Ticket;
+use App\Models\Category;
+use App\Services\GeminiService;
 
 class FaqController extends Controller
 {
@@ -94,5 +97,67 @@ class FaqController extends Controller
         $faq->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Genera una bozza di FAQ da un ticket chiuso tramite Gemini.
+     * Non salva niente in DB: ritorna la bozza al frontend che la mostra
+     * pre-compilata, l'admin la conferma con POST /api/admin/faqs.
+     *
+     * Guard su status='closed' PRIMA della chiamata AI: risparmia quota
+     * Gemini se il ticket non e' eleggibile.
+     *
+     * Errori del service (rete/HTTP/JSON) tradotti in 503 con messaggio
+     * leggibile per il toast lato frontend.
+     */
+    public function draftFromTicket(Request $request, int $ticketId, GeminiService $gemini)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'admin_summary' => 'sometimes|nullable|string|max:2000',
+        ]);
+
+        $ticket = Ticket::where('company_id', $user->company_id)
+            ->with([
+                'messages' => fn($q) => $q->where('type', 'public')->orderBy('created_at'),
+                'messages.user:id,name,surname,role',
+                'category:id,name',
+            ])
+            ->findOrFail($ticketId);
+
+        if ($ticket->status !== 'closed') {
+            return response()->json([
+                'message' => 'Solo i ticket chiusi possono essere trasformati in FAQ.',
+            ], 422);
+        }
+
+        $categories = Category::where('company_id', $user->company_id)
+            ->select('id', 'name')
+            ->get();
+
+        $existingFaqs = Faq::where('company_id', $user->company_id)
+            ->select('id', 'question', 'answer')
+            ->get();
+
+        try {
+            $draft = $gemini->generateFaqDraft(
+                $ticket,
+                $categories,
+                $existingFaqs,
+                $validated['admin_summary'] ?? null
+            );
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 503);
+        }
+
+        return response()->json([
+            'question'              => $draft['question'],
+            'answer'                => $draft['answer'],
+            'suggested_category_id' => $ticket->category_id,
+            'similar_faq_id'        => $draft['similar_faq_id'],
+            'similar_faq_reason'    => $draft['similar_faq_reason'],
+            'ticket_id'             => $ticket->id,
+        ]);
     }
 }
