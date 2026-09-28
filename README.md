@@ -82,7 +82,7 @@ Mira e' l'assistente virtuale di Mirivo, visibile nel portale utente come pulsan
 
 ## Architettura
 
-**Isolamento multi-tenant:** ogni entita' (User, Ticket, Category, FAQ, Tag, Invitation) ha `company_id`. Il middleware carica `Company` dall'utente autenticato, e i model applicano scope globale per filtrare automaticamente per `company_id`. Nessuna query puo' accedere a dati di un'altra azienda per costruzione.
+**Isolamento multi-tenant:** ogni entità (User, Ticket, Category, FAQ, Tag, Invitation) ha una colonna `company_id`, chiave esterna verso `companies.id`. L'azienda corrente viene ricavata dall'utente autenticato e ogni query nei controller filtra esplicitamente per `company_id` (es. `Ticket::where('company_id', $user->company_id)`). L'autorizzazione fine è affidata alle Policy di Laravel: la `TicketPolicy`, ad esempio, verifica che il `company_id` dell'utente coincida con quello del ticket prima di consentire l'accesso. Gli accessi cross-tenant ricevono 403, o 404 dove non si vuole rivelare l'esistenza della risorsa.
 
 **Ruoli e permessi:** `User::role` (`admin`/`agent`/`user`) e `User::level` (1/2 solo per agent). Le rotte sono raggruppate per prefisso ruolo (`/api/admin/...`, `/api/agent/...`, `/api/user/...`) e protette da middleware `EnsureRole`. Autorizzazioni fine tramite Policy (es. `TicketPolicy::assign` verifica che il ticket sia disponibile e assegnabile dal tecnico).
 
