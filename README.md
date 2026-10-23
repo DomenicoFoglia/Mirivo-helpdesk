@@ -61,7 +61,7 @@ Mira e' l'assistente virtuale di Mirivo, visibile nel portale utente come pulsan
 ## Stack
 
 **Backend**
-- Laravel 13.7 + PHP 8.4.1
+- Laravel 13.7 + PHP 8.4.27
 - MySQL 8.0.41
 - Laravel Sanctum per autenticazione SPA a sessione (cookie httpOnly)
 - Google Generative AI (Gemini) per generazione FAQ e Chatbot
